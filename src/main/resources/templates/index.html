@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --border: #1e1e2e;
+            --accent: #00ff9d;
+            --accent-dim: rgba(0, 255, 157, 0.08);
+            --text: #e0e0e0;
+            --muted: #555570;
+            --danger: #ff4d6d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background-image:
+                    radial-gradient(ellipse at 10% 20%, rgba(0,255,157,0.04) 0%, transparent 50%),
+                    radial-gradient(ellipse at 90% 80%, rgba(100,80,255,0.04) 0%, transparent 50%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 620px;
+        }
+
+        .page-header {
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+        }
+
+        .page-header h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.6rem;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+        }
+
+        .page-header p {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 0.4rem;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .input-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .input-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.6rem;
+            display: block;
+        }
+
+        .url-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .url-input::placeholder {
+            color: var(--muted);
+        }
+
+        .url-input:focus {
+            border-color: rgba(0,255,157,0.4);
+            box-shadow: 0 0 0 3px rgba(0,255,157,0.05);
+        }
+
+        .btn-shorten {
+            width: 100%;
+            margin-top: 1rem;
+            background: var(--accent);
+            color: #0a0a0f;
+            border: none;
+            border-radius: 8px;
+            padding: 0.85rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-shorten:hover {
+            background: #00e68a;
+            transform: translateY(-1px);
+        }
+
+        .btn-shorten:active {
+            transform: translateY(0);
+        }
+
+        .btn-shorten:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-card {
+            margin-top: 1.2rem;
+            background: var(--accent-dim);
+            border: 1px solid rgba(0,255,157,0.15);
+            border-radius: 10px;
+            padding: 1.2rem 1.5rem;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .result-card.visible {
+            display: block;
+        }
+
+        .result-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-url {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            word-break: break-all;
+        }
+
+        .result-original {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid rgba(0,255,157,0.1);
+        }
+
+        .result-original .result-label {
+            color: var(--muted);
+        }
+
+        .result-original .result-url {
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .error-card {
+            margin-top: 1rem;
+            background: rgba(255,77,109,0.07);
+            border: 1px solid rgba(255,77,109,0.2);
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--danger);
+            display: none;
+        }
+
+        .error-card.visible { display: block; }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 2rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .nav-link:hover { color: var(--accent); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>// url shortener</h1>
+        <p>paste a long link. get a short one.</p>
+    </div>
+
+    <div class="input-card">
+        <label class="input-label">long url</label>
+        <input
+                type="text"
+                id="urlInput"
+                class="url-input"
+                placeholder="https://example.com/very/long/url..."
+        />
+        <button class="btn-shorten" id="shortenBtn" onclick="shortenUrl()">
+            SHORTEN →
+        </button>
+    </div>
+
+    <div class="error-card" id="errorCard">
+        something went wrong. please try again.
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="result-label">shortened url</div>
+        <div class="result-url" id="resultShort"></div>
+        <div class="result-original">
+            <div class="result-label">original</div>
+            <div class="result-url" id="resultOriginal"></div>
+        </div>
+    </div>
+
+    <a href="/statistics" class="nav-link">→ view statistics</a>
+</div>
+
+<script>
+    document.getElementById('urlInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') shortenUrl();
+    });
+
+    function shortenUrl() {
+        const input = document.getElementById('urlInput');
+        const url = input.value.trim();
+
+        if (!url) return;
+
+        const btn = document.getElementById('shortenBtn');
+        const resultCard = document.getElementById('resultCard');
+        const errorCard = document.getElementById('errorCard');
+
+        btn.disabled = true;
+        btn.textContent = 'WORKING...';
+        resultCard.classList.remove('visible');
+        errorCard.classList.remove('visible');
+
+        fetch('/shorten', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Request failed');
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('resultShort').textContent = data.shortUrl;
+                document.getElementById('resultOriginal').textContent = data.url;
+                resultCard.classList.add('visible');
+            })
+            .catch(() => {
+                errorCard.classList.add('visible');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'SHORTEN →';
+            });
+    }
+</script>
+</body>
+</html>
